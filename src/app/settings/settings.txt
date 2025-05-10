@@ -1,0 +1,422 @@
+import React, { useState, useEffect ,useRef} from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, User } from "lucide-react";
+import { toast } from "react-toastify";
+import Modal from "react-modal";
+import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom'; 
+import { MenuItem } from "@chakra-ui/react";
+
+const brokers = [
+  {
+    id: "binance",
+    name: "Binance",
+    logo: "/Assets/Brokers/Binance_Logo.png",
+    type: "Crypto",
+    status: "active",
+    credentials: {
+      apiKey: {
+        label: "API Key",
+        placeholder: "Enter your Binance API Key",
+        required: true
+      },
+      secret: {
+        label: "Secret",
+        placeholder: "Enter your Binance Secret",
+        required: true
+      }
+    }
+  },
+  {
+    id: "deltaexchangeindia",
+    name: "Delta Exchange India",
+    logo: "/Assets/Brokers/DeltaExchangeIndia_Logo.png",
+    type: "Crypto",
+    status: "active",
+    credentials: {
+      apiKey: {
+        label: "API Key",
+        placeholder: "Enter your Delta Exchange India API Key",
+        required: true
+      },
+      secret: {
+        label: "Secret Key",
+        placeholder: "Enter your Delta Exchange India Secret Key",
+        required: true
+      }
+    }
+  },
+  {
+    id: "coinbase",
+    name: "Coinbase",
+    logo: "/Assets/Brokers/Coinbase_Logo.png",
+    type: "Crypto",
+    status: "active",
+    credentials: {
+      apiId: {
+        label: "API ID",
+        placeholder: "Enter your API ID",
+        required: true
+      },
+      token: {
+        label: "Token",
+        placeholder: "Enter token (optional)",
+        required: false
+      }
+    }
+  },
+  {
+    id: "zerodha",
+    name: "Zerodha",
+    logo: "/Assets/Brokers/Zerodha_Logo.png",
+    type: "Stock",
+    status: "active",
+    credentials: {
+      keyId: {
+        label: "Key ID",
+        placeholder: "Enter Key ID",
+        required: true
+      },
+      apiSecret: {
+        label: "API Secret",
+        placeholder: "Enter API Secret",
+        required: true
+      },
+      clientId: {
+        label: "Client ID",
+        placeholder: "Enter Client ID",
+        required: false
+      }
+    }
+  }
+];
+
+const menuItems = [
+  { label: "Profile",
+    sublabels:{},
+    url_endpoint:"profile",
+    icon_url: "/icons/profile.png",
+    icon: <User className="w-4 h-4 mr-2" /> 
+  },
+  { label: "Email Trading",
+    sublabels:{},
+    url_endpoint:"email-trading",
+    icon_url: "/icons/profile.png",
+    icon: <User className="w-4 h-4 mr-2" /> 
+  },
+  { label: "API Management",
+    sublabels:{},
+    url_endpoint:"api-managment",
+    icon_url: "/icons/profile.png",
+    icon: <User className="w-4 h-4 mr-2" /> 
+  },
+];
+
+const SettingsPage = () => {
+
+
+  const [selected, setSelected] = useState("Profile");
+  const apiTabs = ["Stock", "Crypto", "Forex"];
+  const [selectedApiTab, setSelectedApiTab] = useState("Stock");
+  const [selectedBroker, setSelectedBroker] = useState(null);
+  const [apiData, setApiData] = useState({});
+  const [showModal, setShowModal] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [isSaving, setIsSaving] = useState(false);
+  const [confirmSave, setConfirmSave] = useState(false);
+  const brokerNameInput = useRef(null); // Create a ref to the input
+  const [showModal2, setShowModal2] = useState(false);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const pathParts = location.pathname.split('/');
+    const setting_menu = pathParts[2] || ""; 
+    const menu_tab = pathParts[3] || ""; 
+
+    for (let Index in apiTabs) {
+      if (menu_tab.toLowerCase() === apiTabs[Index].toLowerCase()) {
+        setSelectedApiTab(apiTabs[Index]);
+      }
+    }
+    for (let menuItem of menuItems) {
+      if (setting_menu === menuItem.url_endpoint) {
+        setSelected(menuItem.label)
+      }
+    }
+  }, [location.pathname]);
+
+  useEffect(() => {
+    // Set the app element to avoid the accessibility warning
+    Modal.setAppElement('#root');
+  }, []);
+
+  const SaveAPICredentials = () => {
+    const broker = brokers.find((b) => b.id === selectedBroker);
+    const credentials = broker.credentials;
+    const newErrors = {};
+    const allFilled = Object.entries(credentials).every(([key, meta]) => {
+      if (meta.required && !apiData[key]?.trim()) {
+        newErrors[key] = true;
+        return false;
+      }
+      return true;
+    });
+
+    if (!allFilled) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setConfirmSave(true);
+  };
+
+
+
+  
+  const handleBrokerRequest = () => {
+    // Here you can handle the submission of the broker name (e.g., sending it to an API)
+    const brokerName = brokerNameInput.current.value; // Get the input value
+    console.log(`Requested broker: ${brokerName}`);
+    setShowModal2(false);  // Close the modal after submission
+  };
+
+
+  const handleConfirmSave = () => {
+    setConfirmSave(false);
+    setIsSaving(true);
+    setTimeout(() => {
+      setIsSaving(false);
+      setShowModal(false);
+      toast.success("Credentials saved successfully!");
+    }, 1500);
+  };
+
+  const filteredBrokers = brokers.filter((b) => b.type === selectedApiTab);
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setApiData({});
+    setErrors({});
+  };
+
+  const renderContent = () => {
+    switch (selected) {
+      case "Profile":
+        return (
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700">Full Name</label>
+              <input id="name" placeholder="Enter your full name" className="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700">Username</label>
+              <input id="username" placeholder="Choose a username" className="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label htmlFor="bio" className="block text-sm font-medium text-gray-700">Bio</label>
+              <textarea id="bio" placeholder="Tell us about yourself" className="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" rows="4"></textarea>
+            </div>
+            <button className="w-full bg-blue-500 text-white p-3 rounded-lg shadow-lg hover:bg-blue-600 transition-colors">Update Profile</button>
+          </div>
+        );
+      case "Email Trading":
+        return (
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email Address</label>
+              <input id="email" placeholder="Enter your email" type="email" className="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label htmlFor="alt-email" className="block text-sm font-medium text-gray-700">Alternate Email</label>
+              <input id="alt-email" placeholder="Enter alternate email" type="email" className="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <button className="w-full bg-blue-500 text-white p-3 rounded-lg shadow-lg hover:bg-blue-600 transition-colors">Update Email</button>
+          </div>
+        );
+      case "API Management":
+        return (
+          <div className="space-y-4">
+            <div className="flex space-x-2">
+              {apiTabs.map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => {
+                    setSelectedApiTab(tab);
+                    setSelectedBroker(null);
+                    setShowModal(false);
+                    navigate(`/settings/${menuItems.find(item => item.label === "API Management")?.url_endpoint}/${tab.toLowerCase()}`); 
+                  }}
+                  className={`p-3 rounded-lg ${selectedApiTab === tab ? 'bg-blue-500 text-white' : 'bg-gray-200'} hover:bg-blue-300 transition-colors`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+
+            {filteredBrokers.length > 0 ? (
+              <>
+                <h4 className="text-md font-semibold mb-2">Select Broker</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                  {filteredBrokers.map((broker) => (
+                    <div
+                      key={broker.id}
+                      onClick={() => {
+                        setSelectedBroker(broker.id);
+                        setApiData({});
+                        setErrors({});
+                        setShowModal(true);
+                      }}
+                      className="flex flex-col items-center justify-center p-4 border rounded-lg cursor-pointer hover:bg-gray-100 shadow-lg"
+                    >
+                      <img
+                        src={broker.logo}
+                        alt={broker.name}
+                        className="w-16 h-16 rounded-full object-contain mb-2"
+                      />
+                      <span className="text-sm font-medium text-center">
+                        {broker.name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div>
+                <div className="text-gray-500 text-sm italic pt-4">
+                  Currently, we don't have any broker integrations available for this category. If you would like to suggest a broker, please feel free to let us know.
+                </div>
+
+                <button
+                  onClick={() => setShowModal2(true)}
+                  className="mt-4 bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600"
+                >
+                  Suggest a Broker
+                </button>
+
+                {/* Modal for requesting broker integration */}
+                <Modal
+                  isOpen={showModal2}
+                  onRequestClose={() => setShowModal2(false)}
+                  contentLabel="Request Broker Integration"
+                  className="p-6 bg-white rounded-2xl shadow-xl max-w-lg mx-auto"
+                >
+                  <h3 className="text-xl font-semibold mb-4 text-center">Request Broker Integration</h3>
+                  
+                  <div className="space-y-4">
+                    <label htmlFor="brokerName" className="block text-sm font-medium text-gray-700">
+                      Broker Name
+                    </label>
+                    <input
+                      id="brokerName"
+                      type="text"
+                      placeholder="Enter Broker Name"
+                      className="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      ref={brokerNameInput} 
+                    />
+
+                    <div className="pt-4 text-center">
+                      <button
+                        onClick={handleBrokerRequest}
+                        className="bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600"
+                      >
+                        Submit Request
+                      </button>
+                    </div>
+                  </div>
+                </Modal>
+              </div>
+            )}
+
+            {showModal && selectedBroker && (
+              <Modal
+                isOpen={showModal}
+                onRequestClose={handleCloseModal}
+                contentLabel="API Credentials"
+                className="p-6 bg-white rounded-2xl shadow-xl max-w-lg mx-auto"
+              >
+                <button
+                  onClick={handleCloseModal}
+                  className="absolute top-3 right-3 text-gray-500 hover:text-black"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+                <h4 className="text-lg font-semibold mb-4 text-center">
+                  {brokers.find((b) => b.id === selectedBroker)?.name} API Credentials
+                </h4>
+                <div className="space-y-4">
+                  {Object.entries(
+                    brokers.find((b) => b.id === selectedBroker).credentials
+                  ).map(([key, meta]) => (
+                    <div key={key}>
+                      <label htmlFor={key} className="block text-sm font-medium text-gray-700">
+                        {meta.label}
+                      </label>
+                      <input
+                        id={key}
+                        placeholder={meta.placeholder}
+                        required={meta.required}
+                        value={apiData[key] || ""}
+                        onChange={(e) => {
+                          setApiData({ ...apiData, [key]: e.target.value });
+                          setErrors((prev) => ({ ...prev, [key]: false }));
+                        }}
+                        className={`w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors[key] && 'border-red-500'}`}
+                      />
+                      {errors[key] && (
+                        <p className="text-red-500 text-xs mt-1">This field is required</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex justify-center mt-6 space-x-4">
+                  <button
+                    onClick={handleCloseModal}
+                    className="bg-gray-500 text-white p-3 rounded-lg w-1/3"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={SaveAPICredentials}
+                    disabled={isSaving}
+                    className="bg-blue-500 text-white p-3 rounded-lg w-1/3"
+                  >
+                    {isSaving ? "Saving..." : "Save"}
+                  </button>
+                </div>
+              </Modal>
+            )}
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="flex">
+      <div className="w-1/4 bg-gray-100 p-4">
+        <div className="space-y-4">
+          {menuItems.map((item) => (
+            <button
+              key={item.label}
+              onClick={() => {setSelected(item.label);
+                navigate(`/settings/${item.url_endpoint}`)
+              }}
+              className={`flex items-center py-2 px-4 rounded-lg w-full text-left ${selected === item.label ? 'bg-blue-500 text-white' : 'bg-transparent text-gray-800'}`}
+            >
+              {item.icon}
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="w-3/4 p-6 bg-white shadow-lg rounded-lg">
+        {renderContent()}
+      </div>
+    </div>
+  );
+};
+
+export default SettingsPage;
