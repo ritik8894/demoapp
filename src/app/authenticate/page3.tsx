@@ -1,3 +1,21 @@
+
+
+
+//  do not touch edit 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -16,9 +34,6 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 // Import the client
 import { Supabase } from '@/utils/supabase/client';
-
-
-
 
 // // Sign up
 // const handleSignUp = async (email: string, password: string) => {

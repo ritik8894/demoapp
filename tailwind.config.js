@@ -1,12 +1,15 @@
+const {heroui} = require('@heroui/theme');
 // tailwind.config.js
 const withMT = require("@material-tailwind/react/utils/withMT");
 
 const config = {
   content: [
-    './pages/**/*.{js,ts,jsx,tsx}',
-    './components/**/*.{js,ts,jsx,tsx}',
-    './app/**/*.{js,ts,jsx,tsx}', // Include if using App Router
-    './node_modules/@material-tailwind/react/**/*.{js,ts,jsx,tsx}', // Required for Material Tailwind
+    "./pages/**/*.{js,ts,jsx,tsx}",
+    "./components/**/*.{js,ts,jsx,tsx}",
+    "./app/**/*.{js,ts,jsx,tsx}",
+    "// Include if using App Router\\n    './node_modules/@material-tailwind/react/**/*.{js,ts,jsx,tsx}'",
+    "// Required for Material Tailwind",
+    "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}"
   ],
   theme: {
     extend: {
@@ -18,7 +21,8 @@ const config = {
       },
     },
   },
-  plugins: [],
+  darkMode: "class",
+ plugins: [heroui()],
 }
 
 
