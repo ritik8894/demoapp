@@ -1,14 +1,19 @@
-// src/app/layout.tsx
 import './globals.css';
-import { ReactNode } from 'react';
-import { cookies } from 'next/headers';
-import { createClient } from '@/utils/supabase/server';
+import * as React from "react";
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+// import { cookies } from 'next/headers';
+// import { createClient } from '@/utils/supabase/server';
+import { ThemeProvider , ThemeSwitch } from "../components/Common/providers";
+
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="light"  style={{colorScheme : "light"}} >
+    <html lang="en" suppressHydrationWarning>
       <body>
+        <ThemeProvider>
+          <ThemeSwitch />
           {children}
+        </ThemeProvider>
       </body>
     </html>
   );

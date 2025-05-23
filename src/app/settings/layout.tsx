@@ -21,7 +21,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
     <>
       <NavBar items={navBar} />
       <div className="flex mr-4 ml-4 min-h-screen bg-white text-white">
-        <aside className="flex flex-col w-64 bg-gradient-to-r from-gray-200 to-white p-5 rounded-3xl">
+        <aside className="flex flex-col w-64 bg-linear-to-r from-gray-200 to-white p-5 rounded-3xl">
           <div>
             <h2 className="text-xl font-semibold mb-5 m-1 text-black cursor-default hover:text-white">
               Settings

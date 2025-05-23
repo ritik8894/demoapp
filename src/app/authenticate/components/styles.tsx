@@ -7,11 +7,11 @@ BaseColor: "bg-white",
 const styles = {
 
 // MainPage
-MainContainer:`h-[100vh] flex items-center justify-center ${theme.BaseColor} backdrop-blur-md transition-all duration-500 ease-in-out `,
+MainContainer:`h-screen flex items-center justify-center ${theme.BaseColor} backdrop-blur-md transition-all duration-500 ease-in-out `,
 
 
 //Authentication Container
-AuthContainer: 'h-full w-full lg:h-[95vh] lg:w-[75vw] flex flex-col justify-center md:flex-row sm:rounded-2xl overflow-hidden w-full bg-white transition-all duration-500 ease-in-out shadow-[12px_12px_24px_#c8ccd1,_-12px_-12px_24px_#ffffff]',
+AuthContainer: 'h-full w-full lg:h-[95vh] lg:w-[75vw] flex flex-col justify-center md:flex-row sm:rounded-2xl overflow-hidden w-full bg-white transition-all duration-500 ease-in-out shadow-[12px_12px_24px_#c8ccd1,-12px_-12px_24px_#ffffff]',
 
 
 //Authentication Container Left Side
@@ -33,8 +33,8 @@ AuthContainer_RightSection_Container_AuthForm:"flex-1 flex items-center transiti
 AuthContainer_RightSection_Container_AuthForm_Card:"bg-transparent border-none shadow-none w-full transition-all duration-500 ease-in-out",
 AuthContainer_RightSection_Container_AuthForm_CardHeader:"space-y-3 transition-all duration-500 ease-in-out",
 
-    //Authentication Form
-FormContainer: 'flex-1 flex flex-col justify-center space-y-5 pt-2 pb-2 sm:px-6 max-h-[60vh] transition-all duration-500 ease-in-out overflow-y-auto',
+//Authentication Form
+FormContainer: 'flex-1 flex flex-col justify-center space-y-5 pt-15 sm:pt-30 pb-5 sm:px-6 max-h-[55vh] sm:max-h-[55vh] transition-all duration-500 ease-in-out overflow-y-auto',
 
 
 //Social Section
@@ -46,16 +46,16 @@ socialSection_ButtonStyle:"mr-2 text-base transition-all duration-500 ease-in-ou
 
 //Verification Container
 VerificationContainer_MainContainer:"absolute top-0 left-0 w-full h-full bg-transparent flex items-center justify-center z-50",
-VerificationContainer:"bg-[#f0f2f5] p-6 rounded-xl shadow-[12px_12px_24px_#c8ccd1,_-12px_-12px_24px_#ffffff] w-96 max-w-[90vw]",
+VerificationContainer:"bg-white p-6 rounded-xl shadow-[12px_12px_24px_#c8ccd1,-12px_-12px_24px_#ffffff]  ",
 VerificationContainer_Child:"flex items-center mb-4",
 VerificationContainer_Header:"text-xl font-bold text-gray-700",
 VerificationContainer_Status_div:"ml-auto flex items-center space-x-2",
 VerificationContainer_Status_Idicator:"w-2 h-2 rounded-full",
 VerificationContainer_Description : "mb-5 text-gray-600",
 VerificationContainer_Input_Container: "flex justify-between mb-6",
-VerificationContainer_Input: "w-12 h-12 text-center text-xl bg-[#f0f2f5] text-gray-700 rounded-lg border-none shadow-[inset_4px_4px_8px_#c8ccd1,_inset_-4px_-4px_8px_#ffffff] focus:outline-none focus:ring-2 focus:ring-blue-200",
+VerificationContainer_Input: "w-12 h-12 text-center text-xl bg-[#f0f2f5] text-gray-700 rounded-lg border-none shadow-[inset_4px_4px_8px_#c8ccd1,inset_-4px_-4px_8px_#ffffff] focus:outline-none focus:ring-2 focus:ring-blue-200",
 VerificationContainer_Success_Div: "absolute inset-0 flex items-center justify-center",
-VerificationContainer_Success_Div_Div: "bg-[#f0f2f5] p-6 rounded-xl shadow-[12px_12px_24px_#c8ccd1,_-12px_-12px_24px_#ffffff] text-center transition-transform duration-500 scale-110",
+VerificationContainer_Success_Div_Div: "bg-white p-6 rounded-xl shadow-[12px_12px_24px_#c8ccd1,-12px_-12px_24px_#ffffff] text-center transition-transform duration-500 scale-110",
 VerificationContainer_Success_Div_Message: "text-2xl font-bold text-green-600",
 
 //Common
@@ -64,8 +64,8 @@ Text:"text-xs text-center text-gray-600",
 CheckBox: 'flex items-center gap-2 text-gray-500 text-xs transition-all duration-500 ease-in-out',
 CheckBoxLabel: 'text-xs text-gray-500 hover:text-gray-900 transition-all duration-500 ease-in-out underline cursor-pointer',
 InputRow: 'flex flex-col sm:flex-row gap-3 w-full justify-between transition-all duration-500 ease-in-out',
-Input: 'h-12 w-full px-4 text-base bg-[#f0f2f5] text-gray-700 rounded-xl border-none shadow-[inset_4px_4px_8px_#c8ccd1,_inset_-4px_-4px_8px_#ffffff] focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all',
-InputSmall: 'h-12 w-full px-4 text-base bg-[#f0f2f5] text-gray-700 rounded-xl border-none shadow-[inset_4px_4px_8px_#c8ccd1,_inset_-4px_-4px_8px_#ffffff] focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all',
+Input: 'h-12 w-full px-4 text-base bg-[#f0f2f5] text-gray-700 rounded-xl border-none shadow-[inset_4px_4px_8px_#c8ccd1,inset_-4px_-4px_8px_#ffffff] focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all',
+InputSmall: 'h-12 w-full px-4 text-base bg-[#f0f2f5] text-gray-700 rounded-xl border-none shadow-[inset_4px_4px_8px_#c8ccd1,inset_-4px_-4px_8px_#ffffff] focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all',
 Button: 'w-full h-13  text-base bg-black border-black border rounded-[5px] hover:bg-white hover:text-black hover:border-black text-white  transition-all duration-200',
 
 
