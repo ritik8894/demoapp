@@ -17,7 +17,7 @@ import {styles} from './components/styles';
 
 
 import { SignUpUser, SignInUser, ForgotPassword, SetNewPassword } from "./components/auth";
-import { SignUpForm, SignInForm, ForgotPasswordForm } from "./components/forms";
+import { SignUpForm, SignInForm, ForgotPasswordForm, ForgotPasswordSetNewForm } from "./components/forms";
 import { VerificationContainer } from "./components/verification";
 
 
@@ -26,8 +26,8 @@ const AuthenticatePage = () => {
   const [IsVerified, setIsVerified] = useState(false);
   const SearchParams = useSearchParams();
   const router = useRouter();
-  const [Form, FormType] = useState<'sign-in' | 'sign-up' | 'forgot-password'>(
-    (SearchParams.get('type') as 'sign-in' | 'sign-up' | 'forgot-password') || 'sign-in'
+  const [Form, FormType] = useState<'sign-in' | 'sign-up' | 'forgot-password' | 'forgot-password-set-new'>(
+    (SearchParams.get('type') as 'sign-in' | 'sign-up' | 'forgot-password' | 'forgot-password-set-new') || 'sign-in'
   );
   const [verificationType, setVerificationType] = useState<'phone' | 'email' | '2fa' | null>(null);
   const [verificationSteps, setVerificationSteps] = useState<('phone' | 'email' | '2fa' )[]>([]);
@@ -78,7 +78,7 @@ const AuthenticatePage = () => {
 
       const code = SearchParams.get('code');
       if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        const { error } = await Supabase().auth.exchangeCodeForSession(code);
         if (error) {
           addToast({
             title: 'Access Token Expired!',
@@ -264,12 +264,11 @@ const AuthenticatePage = () => {
         );
       case 'forgot-password':
         return (
-          <>
-            {ForgotPasswordForm(
-              FormProps as Parameters<typeof ForgotPasswordForm>[0],
-              SearchParams.get('forgot-password') == "newpass" ? true : false
-            )}
-          </>
+          <ForgotPasswordForm {...FormProps} />
+        );
+      case 'forgot-password-set-new':
+        return (
+          <ForgotPasswordSetNewForm {...FormProps} />
         );
       default:
         return null;
@@ -319,11 +318,13 @@ const AuthenticatePage = () => {
               {Form === 'sign-in' && 'Welcome back'}
               {Form === 'sign-up' && 'Create an account'}
               {Form === 'forgot-password' && 'Reset your password'}
+              {Form === 'forgot-password-set-new' && 'Reset your password'}
             </CardTitle>
             <CardDescription className={styles.AuthContainer_RightSection_Container_Description}>
               {Form === 'sign-in' && 'Sign in to your account'}
               {Form === 'sign-up' && 'Enter your info to sign up'}
               {Form === 'forgot-password' && "We'll email you a reset link"}
+              {Form === 'forgot-password-set-new' && 'Enter new password to reset password.'}
             </CardDescription>
           </div>
 

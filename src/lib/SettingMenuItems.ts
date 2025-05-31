@@ -9,10 +9,10 @@ import { RiStockFill } from "react-icons/ri";
 
 
 //Importing Page Components
-import Profile from "@/app/settings/Profile";
-import EmailTrading from "@/app/settings/Profile";
-import APIManagement from "@/app/settings/Profile";
-import Notification from "@/app/settings/Profile";
+import Profile from "@/app/settings/Profile/Profile";
+import EmailTrading from "@/app/settings/Profile/Profile";
+import APIManagement from "@/app/settings/Profile/Profile";
+import Notification from "@/app/settings/Profile/Profile";
 
 export const menuItems = {
   profile: {

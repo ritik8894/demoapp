@@ -4,6 +4,10 @@ import {TextField  ,sxfuncTextField} from "@/components/ui/custom-ui";
 import { Checkbox } from '@/components/ui/checkbox';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import {Button as Bt } from "@heroui/react";
+
+
+
 
 export const FormButton: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement> & {isLoading?: boolean; disabled?: boolean;}> = ({ children, isLoading = false, disabled, ...props }) => (
     <Button
@@ -103,6 +107,12 @@ export const SignInForm = (props: FormProps) => {
       <FormButton className={styles.Button} isLoading={props.isLoading} onClick={() => props.SubmitForm('sign-in')} disabled={!props.isFormValid()}>
         {props.isLoading ? 'Signing In...' : 'Sign in'}
       </FormButton>
+
+      <Bt className={styles.Button} isLoading={props.isLoading} onPress={() => props.SubmitForm('sign-in')} isDisabled={!props.isFormValid()}>
+        {props.isLoading ? 'Signing In...' : 'Sign in'}
+      </Bt>
+
+
       <p className={styles.Text}>
         Forgot your password?{' '}
         <span className={styles.Link} onClick={() => props.updateFormType('forgot-password')}>
@@ -119,18 +129,10 @@ export const SignInForm = (props: FormProps) => {
   );
 }
 
-export const ForgotPasswordForm = (props: FormProps,NewPass: boolean) => {
+export const ForgotPasswordForm = (props: FormProps) => {
   return (
   <div className={styles.FormContainer}>
-    <TextField type={NewPass? "password": props.DynamicType}  label={NewPass? "New Password": "Email Address/Phone No"} sx={sxfuncTextField(NewPass? {input:props.Password,er:false} :{input:props.Email_Phone})} value={NewPass? props.Password: props.Email_Phone} onChange={e => NewPass? props.setPassword(e.target.value): props.setEmail_Phone(e.target.value)} />
-    {NewPass ?
-     <Link href={"/authenticate?type=forgot-password"} className={styles.Text} style={{ marginTop: 10 }}>
-        <span className={styles.CheckBoxLabel} style={{ marginLeft: 4 }}>
-          Make a Fresh Request
-        </span>
-      </Link>
-      : null
-    }
+    <TextField type={props.DynamicType}  label="Email Address/Phone No" sx={sxfuncTextField({input:props.Email_Phone})} value={props.Email_Phone} onChange={e => props.setEmail_Phone(e.target.value)} />
     <div className={styles.CheckBox}>
       <Checkbox id="terms" checked={props.AcceptedTerms} onCheckedChange={checked => props.setAcceptedTerms(checked === true)} />
       <label htmlFor="terms" className={styles.Link}>
@@ -142,8 +144,41 @@ export const ForgotPasswordForm = (props: FormProps,NewPass: boolean) => {
         </span>
       </Link>
     </div>
-    <FormButton className={styles.Button} isLoading={props.isLoading} onClick={() => props.SubmitForm(NewPass? 'forgot-password-set-new': 'forgot-password')} disabled={!props.isFormValid()}>
-      {props.isLoading ? NewPass?'Saving New Password...':'Sending Email...': NewPass?'Set New Password':'Send reset link'}
+    <FormButton className={styles.Button} isLoading={props.isLoading} onClick={() => props.SubmitForm('forgot-password')} disabled={!props.isFormValid()}>
+      {props.isLoading ? 'Sending Email...': 'Send reset link'}
+    </FormButton>
+    <p className={styles.Text}>
+      Remembered it?{' '}
+      <span className={styles.Link} onClick={() => props.updateFormType('sign-in')}>
+        Log in
+      </span>
+    </p>
+  </div>
+  );
+}
+
+export const ForgotPasswordSetNewForm = (props: FormProps) => {
+  return (
+  <div className={styles.FormContainer}>
+    <TextField type="password" label="New Password" sx={sxfuncTextField({input:props.Password,er:false})} value={props.Password} onChange={e => props.setPassword(e.target.value)} />
+    <Link href={"/authenticate?type=forgot-password"} className={styles.Text} style={{ marginTop: 10 }}>
+      <span className={styles.CheckBoxLabel} style={{ marginLeft: 4 }}>
+        Make a Fresh Request
+      </span>
+    </Link>
+    <div className={styles.CheckBox}>
+      <Checkbox id="terms" checked={props.AcceptedTerms} onCheckedChange={checked => props.setAcceptedTerms(checked === true)} />
+      <label htmlFor="terms" className={styles.Link}>
+        I agree to the
+      </label>
+      <Link href={Links.Terms} target="_blank">
+        <span className={styles.CheckBoxLabel} style={{ marginLeft: 4 }}>
+          Terms & Conditions
+        </span>
+      </Link>
+    </div>
+    <FormButton className={styles.Button} isLoading={props.isLoading} onClick={() => props.SubmitForm('forgot-password-set-new')} disabled={!props.isFormValid()}>
+      {props.isLoading ?'Saving New Password...':'Set New Password'}
     </FormButton>
     <p className={styles.Text}>
       Remembered it?{' '}
