@@ -1,10 +1,7 @@
 "use client";
-
 import { useState } from 'react';
-import {styles } from './styles';
-import {sxfuncTextField} from "@/components/ui/custom-ui";
+import {useSxfuncTextField} from "@/components/ui/custom-ui";
 import { Button } from '@/components/ui/button';
-import { FormButton } from './forms';
 import { MuiOtpInput } from 'mui-one-time-password-input';
 
 export interface VerificationProps {
@@ -164,7 +161,7 @@ export const VerificationContainer = (props: VerificationProps) => {
             )}
           </p>
           <div className="flex flex-col w-100 items-start">
-            <MuiOtpInput length={6} autoFocus value={OtpValue} onChange={setOtpValue} TextFieldsProps={{sx:sxfuncTextField({input:"",er:false})}} />
+            <MuiOtpInput length={6} autoFocus value={OtpValue} onChange={setOtpValue} TextFieldsProps={{sx:useSxfuncTextField({input:"",er:false})}} />
           </div>
           {/* <div className={styles.VerificationContainer_Input_Container}>
             

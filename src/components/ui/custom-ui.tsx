@@ -1,8 +1,8 @@
 import { useRef,useState, useEffect} from 'react';
-
+import { useTheme } from 'next-themes';
 import {IconButton, InputAdornment, Typography, Box, TextField as TF} from '@mui/material';
 import { TextFieldProps } from '@mui/material/TextField';
-import { MuiTelInput, MuiTelInputProps } from 'mui-tel-input';
+import { MuiTelInput } from 'mui-tel-input';
 
 import {Visibility, VisibilityOff} from '@mui/icons-material';
 import { Shield ,ShieldCheck, ShieldAlert, Mail, KeyRound} from 'lucide-react';
@@ -10,31 +10,40 @@ import { Shield ,ShieldCheck, ShieldAlert, Mail, KeyRound} from 'lucide-react';
 import clsx from 'clsx';
 
 
-export function sxfuncTextField({input, status= false, er = false} : {input?: string, status?: boolean, er?: boolean}) {
+export function useSxfuncTextField({input, er = false} : {input?: string, er?: boolean}) {
+    const { resolvedTheme } = useTheme();
+    const [isDark, setIsDark] = useState(false);
+    useEffect(() => {
+        setIsDark(resolvedTheme === 'dark');
+    }, [resolvedTheme]);
+
     return {
         mb: 1.25,
         '& .MuiOutlinedInput-root': { 
             borderRadius: '5px',
+            color: isDark ? '#ffffff' : '#000000',
             '& fieldset': { 
-            borderColor: er ? '#ff0000' : input ? '#00b31e' : undefined, 
-            borderWidth: '1.25px', 
+            borderColor: er ? '#ff0000' : input ? '#00b31e' : isDark ? 'rgba(255,255,255,0.5)' :undefined, 
+            borderWidth: '1px', 
             },
             '&:hover fieldset': {
-            borderColor: er ? '#ff0000' : input ? '#00b31e' : 'black',  
-            borderWidth: '1.25px',
+            borderColor: er ? '#ff0000' : input ? '#00b31e' : isDark ? 'white' :'black',  
+            borderWidth: '1px',
             },
             '&.Mui-focused fieldset': {
             borderColor: er ? '#ff0000' : input ? '#00b31e' : '#00b31e', 
-            borderWidth: '1.25px',
+            borderWidth: '1px',
             },
         },
         '& .MuiInputLabel-root': {
-            color: er ? '#ff0000' : input ? '#00b31e' : 'black', 
+            color: er ? '#ff0000' : input ? '#00b31e' :  isDark ? 'white' :'black', 
             '&.Mui-focused': {
             color: er ? '#ff0000' : '#00b31e',
             },
         },}
 };
+
+
 
 const PasswordField = (props: TextFieldProps & { verify?: boolean }) => {
   const { verify, ...rest } = props;
@@ -99,14 +108,14 @@ const PasswordField = (props: TextFieldProps & { verify?: boolean }) => {
             endAdornment: (focused || !!rest.value) && (
             <InputAdornment position="end">
                 <IconButton onClick={togglePasswordVisibility} edge="end">
-                {showPassword ? <VisibilityOff fontSize="inherit" /> : <Visibility fontSize="inherit" />}
+                {showPassword ? <VisibilityOff fontSize="inherit" className="text-black dark:text-white"/> : <Visibility fontSize="inherit" className="text-black dark:text-white" />}
                 </IconButton>
             </InputAdornment>
             ),
             startAdornment: (focused || !!rest.value) && (
                 <InputAdornment position="end">
                     <IconButton edge="start">
-                    <KeyRound fontSize="inherit" />
+                    <KeyRound fontSize="inherit" className="text-black dark:text-white"/>
                     </IconButton>
                 </InputAdornment>
             ),
@@ -114,7 +123,7 @@ const PasswordField = (props: TextFieldProps & { verify?: boolean }) => {
         />
 
         {showChecklist && (focused || submitted) && (
-        <Box className="mt-2 p-4 border rounded-lg shadow-sm bg-white space-y-2">
+        <Box className="mt-2 p-4 border rounded-lg shadow-sm bg-white dark:bg-black/80 space-y-2">
             {([
             { key: 'length', text: 'At least 6 characters' },
             { key: 'upper', text: 'At least one uppercase letter' },
@@ -137,13 +146,14 @@ const PasswordField = (props: TextFieldProps & { verify?: boolean }) => {
                 ): (
                     <Shield className={clsx(
                     'w-5 h-5',
-                    'text-gray-400'
+                    'text-gray-400',
+                    'dark:text-white'
                     )} />
                 )}
                 <Typography
                     variant="body2"
                     className={clsx(
-                    isValid ? 'text-green-600' : isError ? 'text-red-500' : 'text-gray-600'
+                    isValid ? 'text-green-600 ' : isError ? 'text-red-500' : 'text-gray-600 dark:text-gray-100'
                     )}
                 >
                     {text}
@@ -180,7 +190,7 @@ export const TextField = (props: TextFieldProps & { type?: string } & { verify?:
                     startAdornment: (focused || !!rest.value) && (
                     <InputAdornment position="end">
                         <IconButton edge="start">
-                        <Mail fontSize="inherit" />
+                        <Mail fontSize="inherit" className="text-black dark:text-white"/>
                         </IconButton>
                     </InputAdornment>
                     ),
@@ -203,6 +213,7 @@ export const TextField = (props: TextFieldProps & { type?: string } & { verify?:
         const { onChange, value, ...muiTelRest } = rest;
         return (
             <MuiTelInput
+                className='text-black dark:text-white'
                 inputRef={inputRef}
                 {...muiTelRest}
                 value={value as string}
@@ -228,7 +239,7 @@ export const TextField = (props: TextFieldProps & { type?: string } & { verify?:
     }
     else {  
         return (
-            <TF
+            <TF 
                 {...rest}
                 type={validTypes.includes(type ?? '') ? type : undefined}
             />

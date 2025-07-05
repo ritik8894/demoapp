@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Button } from "@heroui/react";
 import { Supabase } from '@/utils/supabase/client';
-import { Spinner } from "@heroui/react";
 
 interface AutheticatedRedirectButtonProps {
   label?: string;
@@ -46,7 +45,7 @@ export const SignOutButton: React.FC = () => {
   };
   const handleAuthenticate =  () => {
     setIsLoading(true);
-    router.push(`/authenticate?type=sign-in&redirect_url=${redirectUrl}`, { scroll: false });
+    window.location.href = `/authenticate?type=sign-in&redirect_url=${redirectUrl}`;
   };
   return ( 
     <Button isLoading={isLoading} color="primary" variant="shadow" onPress={session ? handleSignOut: handleAuthenticate}>
@@ -56,7 +55,6 @@ export const SignOutButton: React.FC = () => {
 }
 
 export const AutheticatedButton: React.FC<AutheticatedRedirectButtonProps> = ({ label, redirect_url }) => {
-  const router = useRouter();
   const pathname = usePathname();
   const redirectUrl = encodeURIComponent(pathname);
   const session = useAuthSession();
@@ -64,11 +62,11 @@ export const AutheticatedButton: React.FC<AutheticatedRedirectButtonProps> = ({ 
 
   const handleAuthenticate =  () => {
     setIsLoading(true);
-    router.push(`/authenticate?type=sign-in&redirect_url=${redirectUrl}`, { scroll: false });
+    window.location.href = `/authenticate?type=sign-in&redirect_url=${redirectUrl}`;
   };
   const handleRedirect = (redirect_url?: string) => {
     setIsLoading(true);
-    router.push( redirect_url? redirect_url: label ? `/${label.toLocaleLowerCase()}`: "/dashboard", { scroll: false });
+    window.location.href =  redirect_url? redirect_url: label ? `/${label.toLocaleLowerCase()}`: "/dashboard";
   };
   return (   
     <Button isLoading={isLoading} color="primary" variant="shadow" onPress={session ? () => handleRedirect(redirect_url) : handleAuthenticate}>

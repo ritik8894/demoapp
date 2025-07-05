@@ -1,0 +1,65 @@
+const api: MarketStructure = {
+  "stock market": {
+    us: [
+      {
+        name: "TD Ameritrade",
+        type: "broker",
+        fields: ["apiKey"],
+        documentationUrl: "https://developer.tdameritrade.com/apis",
+        referalUrl: "https://tdameritrade.com/refer",
+        supportsPaperTrading: true,
+        logo: "/logos/tdameritrade.png",
+        region: "us",
+        requirements: ["Enable developer account access"]
+      },
+    ],
+    indian: [
+      {
+        name: "Zerodha",
+        type: "broker",
+        fields: ["apiKey", "apiSecret"],
+        documentationUrl: "https://kite.trade/docs/connect/v3/",
+        referalUrl: "https://zerodha.com/open-account?referralCode=XYZ123",
+        supportsPaperTrading: false,
+        logo: "/logos/zerodha.png",
+        region: "india",
+        requirements: ["KYC must be completed"]
+      },
+    ],
+  },
+
+  crypto: {
+    binance: [
+      {
+        name: "Binance",
+        type: "exchange",
+        fields: ["apiKey", "apiSecret"],
+        optionalFields: ["passphrase"],
+        documentationUrl: "https://binance-docs.github.io/apidocs/spot/en/",
+        referalUrl: "https://binance.com/en/register?ref=ABC123",
+        supportsPaperTrading: false,
+        logo: "/logos/binance.svg",
+        region: "global",
+        requirements: ["Enable spot trading API"]
+      },
+    ],
+  },
+
+  forex: {
+    oanda: [
+      {
+        name: "OANDA",
+        type: "broker",
+        fields: ["accessToken"],
+        documentationUrl: "https://developer.oanda.com/rest-live-v20/introduction/",
+        logo: "/logos/oanda.svg",
+        supportsPaperTrading: true,
+        region: "global",
+        requirements: [
+          "Enable API access in account settings",
+          "Live or demo account must be selected"
+        ]
+      }
+    ],
+  },
+};

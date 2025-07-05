@@ -17,85 +17,108 @@ export async function SignUpUser(
   setIsLoading: (state: boolean) => void,
   setIsVerified: (state: boolean) => void
 ): Promise<boolean> {
+  let resstatus = false;
   setIsLoading(true);
 
   try {
-
     const userMetadata: Record<string, string> = {
       first_name: credentials.FirstName,
       last_name: credentials.LastName,
-      phone: credentials.PhoneNo,
+      full_name: credentials.FirstName+" "+credentials.LastName,
+      phone_no: credentials.PhoneNo
     };
 
     if (credentials.ReferralCode) {
       userMetadata.referral_code = credentials.ReferralCode;
     }
 
+    // 1. Create account
     const { data, error: signUpError } = await Supabase().auth.signUp({
       email: credentials.EmailAddress,
-      password:credentials.Password,
+      password: credentials.Password,
       options: {
         data: userMetadata,
       },
     });
 
-    if (signUpError) {
+    if (signUpError || !data.user) {
       addToast({
-        title: "Sign Up Error",
-        description: signUpError.message,
-        timeout: 10000,
-        shouldShowTimeoutProgress: true,
-        variant: "bordered",
+        title: "Account Creation Failed",
+        description: signUpError?.message || "Unable to create account.",
+        timeout: 3000,
+        variant: "solid",
         color: "danger",
       });
-      return false;
-    }
+    } else {
+      const isExistingUser = Array.isArray(data.user.identities) && data.user.identities.length === 0;
 
-    const phoneUpdateResponse = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/supabase-user-phone-update`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({ email: credentials.EmailAddress }),
+      if (isExistingUser) {
+        // 2. Account Already Found,
+        addToast({
+          title: "Account Already Found",
+          description: "Account Already Found With This Email.",
+          timeout: 3000,
+          variant: "solid",
+          color: "danger",
+        });
+      } else {
+        // Account created.
+        addToast({
+          title: "Account Created!",
+          description: "Account Created Successfully! Verification Email Send Please Verify. Adding Phone Number...",
+          promise: new Promise((resolve) => setTimeout(resolve, 5000)),
+          variant: "solid",
+          color: "primary",
+        });
+      
+        // 3. Call Supabase function to add phone
+        const phoneUpdateResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/supabase-user-phone-update`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({ email: credentials.EmailAddress }),
+          }
+        );
+        const phoneUpdateData = await phoneUpdateResponse.json();
+
+        if (!phoneUpdateResponse.ok) {
+          addToast({
+            title: "Phone Number Update Failed",
+            description: phoneUpdateData.error || "Could not update phone number.",
+            timeout: 3000,
+            // shouldShowTimeoutProgress: true,
+            variant: "solid",
+            color: "danger",
+          });
+        } else {
+          addToast({
+            title: "Phone Number Updated",
+            description: "Verification instructions sent to your email and phone.",
+            timeout: 3000,
+            shouldShowTimeoutProgress: true,
+            variant: "solid",
+            color: "success",
+          });
+          resstatus = true;
+        }
       }
-    );
-
-    const phoneUpdateData = await phoneUpdateResponse.json();
-
-    if (!phoneUpdateResponse.ok) {
-      addToast({
-        title: "Phone Update Error",
-        description: phoneUpdateData.error,
-        timeout: 10000,
-        shouldShowTimeoutProgress: true,
-        variant: "bordered",
-        color: "danger",
-      });
     }
-    addToast({
-      title: "Sign Up Successful!",
-      description: "Sign up successful! Please verify your email and phone otp sent.",
-      timeout: 10000,
-      shouldShowTimeoutProgress: true,
-      variant: "bordered",
-      color: "success",
-    });
-    return true;
   } catch (err: unknown) {
     addToast({
-      title: "Unexpected Sign Up Error",
+      title: "Unexpected Error",
       description: String(err),
-      timeout: 10000,
-      shouldShowTimeoutProgress: true,
-      variant: "bordered",
+      timeout: 3000,
+      variant: "solid",
       color: "danger",
     });
-    return false;
   } finally {
     setIsLoading(false);
+    setIsVerified(resstatus);
+    return resstatus;
   }
 }
 
@@ -104,6 +127,7 @@ export async function SignInUser(
   setIsLoading: (state: boolean) => void,
   setIsVerified: (state: boolean) => void
 ): Promise<boolean> {
+  let resstatus = false;
   setIsLoading(true);
 
   try {
@@ -116,37 +140,32 @@ export async function SignInUser(
       addToast({
         title: "Sign In Error",
         description: error.message,
-        timeout: 10000,
-        shouldShowTimeoutProgress: true,
-        variant: "bordered",
+        timeout: 3000,
+        variant: "solid",
         color: "danger",
       });
-      return false;
+    }else{
+      addToast({
+          title: "Sign in successful!",
+          description: "Sign in successful!",
+          timeout: 3000,
+          variant: "bordered",
+          color: "success",
+      });
+      resstatus = true;
     }
-
-    addToast({
-        title: "Sign in successful!",
-        description: "Sign in successful!",
-        timeout: 3000,
-        shouldShowTimeoutProgress: true,
-        variant: "bordered",
-        color: "success",
-    });
-    
-    setIsVerified(true)
-    return true;
   } catch (err: unknown) {
     addToast({
         title: "Unexpected Sign In Error",
         description: String(err),
-        timeout: 10000,
-        shouldShowTimeoutProgress: true,
-        variant: "bordered",
+        timeout: 3000,
+        variant: "solid",
         color: "danger",
       });
-    return false;
   } finally {
     setIsLoading(false);
+    setIsVerified(resstatus);
+    return resstatus;
   }
 }
 
@@ -154,115 +173,90 @@ export async function ForgotPassword(
   credentials: CredentialProps,
   setIsLoading: (state: boolean) => void,
   setIsVerified: (state: boolean) => void
-): Promise<'email' | null> {
+): Promise<boolean> {
+  let resstatus = false;
   setIsLoading(true);
   try {
-    const isEmail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(credentials.Email_Phone);
-
-    if (!isEmail) {
-      addToast({
-        title: 'Invalid Input',
-        description: 'Please enter a valid email address for password reset.',
-        timeout: 10000,
-        shouldShowTimeoutProgress: true,
-        variant: 'bordered',
-        color: 'danger',
-      });
-      return null;
-    }
-
-    const { data, error } = await Supabase().auth.resetPasswordForEmail(credentials.Email_Phone);
-
+    const { data, error } = await Supabase().auth.resetPasswordForEmail(credentials.EmailAddress);
     if (error) {
       addToast({
-        title: 'Reset Link Send Error',
+        title: 'Password Forgot Error',
         description: error.message,
-        timeout: 10000,
-        shouldShowTimeoutProgress: true,
-        variant: 'bordered',
+        timeout: 3000,
+        variant: 'solid',
         color: 'danger',
       });
-      return null;
+    }else{
+      addToast({
+        title: 'Reset Link Sent',
+        description: 'A Password Reset Link Has Been Sent To Your Email!',
+        timeout: 3000,
+        variant: 'solid',
+        color: 'success',
+      });
+      resstatus = true;
     }
-
-    addToast({
-      title: 'Reset Link Sent',
-      description: 'A password reset link has been sent to your email!',
-      timeout: 10000,
-      shouldShowTimeoutProgress: true,
-      variant: 'bordered',
-      color: 'success',
-    });
-    setIsVerified(true);
-    return 'email';
   } catch (err) {
     addToast({
       title: 'Unexpected Error',
       description: `Unexpected error during password reset: ${err}`,
-      timeout: 10000,
+      timeout: 3000,
       shouldShowTimeoutProgress: true,
-      variant: 'bordered',
+      variant: 'solid',
       color: 'danger',
     });
-    return null;
   } finally {
     setIsLoading(false);
+    setIsVerified(resstatus);
+    return resstatus;
   }
 }
 
 export async function SetNewPassword(
-  credentials: CredentialProps, // No OTP needed
+  credentials: CredentialProps,
   setIsLoading: (state: boolean) => void,
   setIsVerified: (state: boolean) => void,
   router: ReturnType<typeof useRouter>,
   searchParams: ReturnType<typeof useSearchParams>
 ): Promise<boolean> {
+  let resstatus = false;
   setIsLoading(true);
   try {
-    // User is already authenticated via magic link/session
     const { error } = await Supabase().auth.updateUser({
       password: credentials.Password,
     });
-
     if (error) {
       addToast({
         title: 'Password Update Error',
         description: error.message,
-        timeout: 10000,
-        shouldShowTimeoutProgress: true,
-        variant: 'bordered',
+        timeout: 3000,
+        variant: 'solid',
         color: 'danger',
       });
-      return false;
+    }else{
+      addToast({
+        title: 'Password Reset Successful!',
+        description: 'Your password has been updated. Redirecting...',
+        timeout: 3000,
+        variant: 'solid',
+        color: 'success',
+      });
+      resstatus = true;
+      const redirecturl = new URLSearchParams(searchParams.toString()).get('redirect_url') || '/';
+      router.push(redirecturl);
+      setTimeout(() => setIsVerified(resstatus), 1000);
     }
-
-    addToast({
-      title: 'Password Reset Successful!',
-      description: 'Your password has been updated. Redirecting...',
-      timeout: 10000,
-      shouldShowTimeoutProgress: true,
-      variant: 'bordered',
-      color: 'success',
-    });
-    
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete('forgot-password');
-    router.replace(`?${params.toString()}`);
-    setTimeout(() => setIsVerified(true), 1000);
-    setIsVerified(true);
-
-    return true;
   } catch (err) {
     addToast({
       title: 'Unexpected Error',
       description: `Unexpected error during password reset: ${err}`,
-      timeout: 10000,
-      shouldShowTimeoutProgress: true,
-      variant: 'bordered',
+      timeout: 3000,
+      variant: 'solid',
       color: 'danger',
     });
-    return false;
   } finally {
     setIsLoading(false);
+    setIsVerified(resstatus);
+    return resstatus;
   }
 }

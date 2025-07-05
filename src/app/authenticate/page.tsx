@@ -1,51 +1,70 @@
-'use client';
-import { useState, useEffect, useCallback } from 'react';
-import React from 'react';
-import { FaApple} from 'react-icons/fa';
-import { FcGoogle } from 'react-icons/fc';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card';
+"use client";
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+
+import { FcGoogle } from 'react-icons/fc';
+import { FaApple } from 'react-icons/fa';
+import { ArrowRight } from 'lucide-react';
+
 import { Supabase } from '@/utils/supabase/client';
-import {ToastProvider, addToast} from "@heroui/react";
-import {styles} from './components/styles';
 
+import {
+  Tabs,
+  Tab,
+  Card,
+  CardBody,
+  Button,
+  ToastProvider,
+  addToast,
+} from '@heroui/react';
 
-import { SignUpUser, SignInUser, ForgotPassword, SetNewPassword } from "./components/auth";
-import { SignUpForm, SignInForm, ForgotPasswordForm } from "./components/forms";
-import { VerificationContainer } from "./components/verification";
+import { CardTitle, CardDescription } from '@/components/ui/card';
+
+import {
+  SignUpUser,
+  SignInUser,
+  ForgotPassword,
+  SetNewPassword,
+} from './components/auth';
+
+import {
+  SignUpForm,
+  SignInForm,
+  ForgotPasswordForm,
+} from './components/forms';
+
+import { VerificationContainer } from './components/verification';
 
 
 const AuthenticatePage = () => {  
-  const [Email_Phone, setEmail_Phone] = useState('');
   const [IsVerified, setIsVerified] = useState(false);
   const SearchParams = useSearchParams();
   const router = useRouter();
-  const [Form, FormType] = useState<'sign-in' | 'sign-up' | 'forgot-password'>(
+  const [FormType, SetForm] = useState<'sign-in' | 'sign-up' | 'forgot-password'>(
     (SearchParams.get('type') as 'sign-in' | 'sign-up' | 'forgot-password') || 'sign-in'
   );
   const [verificationType, setVerificationType] = useState<'phone' | 'email' | '2fa' | null>(null);
   const [verificationSteps, setVerificationSteps] = useState<('phone' | 'email' | '2fa' )[]>([]);
+  const [NewPass,setNewPass] = useState(false);
   
   // // Update URL without page reload
   const updateFormType = useCallback(
     (newView: 'sign-in' | 'sign-up' | 'forgot-password') => {
-      FormType(newView);
-      const params = new URLSearchParams(SearchParams.toString());
-      params.set('type', newView);
-      router.push(`?${params.toString()}`, { scroll: false });
+      SetForm(newView);
     },
-    [SearchParams, router]
+    []
+  );
+  useEffect(
+    () => {
+      const params = new URLSearchParams(SearchParams.toString());
+      params.set('type', FormType);
+      router.replace(`?${params.toString()}`);
+    },
+    [FormType,SearchParams, router]
   );
 
   useEffect(() => {
-    const redirectUrlParam = SearchParams.get('redirect_url');
-    const redirectTo = redirectUrlParam || '/'; // fallback
+    const redirectTo = SearchParams.get('redirect_url') || '/'; 
 
     const handleSession = async () => {
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -60,8 +79,8 @@ const AuthenticatePage = () => {
 
         if (error) {
           addToast({
-            title: 'Access Token Expired!',
-            description: 'Your Access Token Expired! Please Re-Authenticate.',
+            title: 'Access Token Error!',
+            description: `Access Token Error! Error:${error}`,
             color: 'danger',
           });
         } else {
@@ -71,18 +90,17 @@ const AuthenticatePage = () => {
             promise: new Promise((resolve) => setTimeout(resolve, 3000)),
             color: 'success',
           });
-          // router.replace(redirectTo);
+          router.push(redirectTo);
         }
-        return;
       }
 
       const code = SearchParams.get('code');
       if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        const { error } = await Supabase().auth.exchangeCodeForSession(code);
         if (error) {
           addToast({
-            title: 'Access Token Expired!',
-            description: 'Your Access Token Expired! Please Re-Authenticate.',
+            title: 'Access Code Error!',
+            description: `Access Code Error! Error:${error}`,
             color: 'danger',
           });
         } else {
@@ -92,9 +110,8 @@ const AuthenticatePage = () => {
             promise: new Promise((resolve) => setTimeout(resolve, 3000)),
             color: 'success',
           });
-          // router.replace(redirectTo);
+          router.push(redirectTo);
         }
-        return;
       }
 
       // Fallback: check if session exists
@@ -104,14 +121,22 @@ const AuthenticatePage = () => {
       if (session) {
         const { data: userData, error } = await Supabase().auth.getUser(session.access_token);
         if (userData?.user && !error) {
-          if (!(SearchParams.get('forgot-password') == "newpass")) {
+          if ((SearchParams.get('type') == "forgot-password")) {
+            setNewPass(true)
+            addToast({
+              title: 'Authentication Successful!',
+              description: 'Authentication Successful! Set You New Password...',
+              promise: new Promise((resolve) => setTimeout(resolve, 3000)),
+              color: 'success',
+            });
+          }else{
             addToast({
               title: 'Authentication Successful!',
               description: 'Redirecting...',
               promise: new Promise((resolve) => setTimeout(resolve, 3000)),
               color: 'success',
             });
-            setTimeout(() => router.replace(redirectTo), 2000);
+            router.push(redirectTo);
           }
         } else {
           await Supabase().auth.signOut();
@@ -125,9 +150,8 @@ const AuthenticatePage = () => {
         }
       }
     };
-
     handleSession();
-  }, [IsVerified]);
+  }, [IsVerified, SearchParams, router]);
 
   const handleVerificationComplete = useCallback(() => {
     if (verificationType === 'phone') {
@@ -147,9 +171,11 @@ const AuthenticatePage = () => {
     const [LastName, setLastName] = useState('');
     const [EmailAddress, setEmailAddress] = useState('');
     const [PhoneNo, setPhoneNo] = useState('');
+    const [Email_Phone, setEmail_Phone] = useState('');
     
     const [Password, setPassword] = useState('');
     const [ReferralCode,setReferralCode] = useState('');
+    const [ReferralDisable,setReferralDisable] = useState(false);
 
     const [AcceptedTerms, setAcceptedTerms] = useState(true);
     const [DynamicType, setDynamicType] = useState("text");
@@ -166,6 +192,16 @@ const AuthenticatePage = () => {
         }
     }, [Email_Phone]);
 
+    useEffect(
+      () => {
+        const ref_code = SearchParams.get('referral_code');
+        if (ref_code){
+          setReferralDisable(true);
+          setReferralCode(ref_code);
+        }
+      },
+      []
+    );
 
     const isFormValid = () => {
       const validatePassword = (pwd: string) => {
@@ -180,28 +216,27 @@ const AuthenticatePage = () => {
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const phoneRegex = /^(\+?\d{1,4}[-.\s]?)?(\(?\d{3,5}\)?[-.\s]?)?[\d\-.\s]{6,14}$/;
-      var valid_email = emailRegex.test(EmailAddress);
-      var valid_phone = phoneRegex.test(PhoneNo);
-      var valid_password = Object.values(validatePassword(Password)).every(Boolean);
-      var valid_FirstName = FirstName != "";
-      var confirm_term_condition = AcceptedTerms;
 
-      if (Form === 'sign-in') {
-        valid_email = emailRegex.test(Email_Phone);
-        if (!valid_email){
-          var valid_email = phoneRegex.test(Email_Phone);
-        };
-        return valid_email && valid_password && confirm_term_condition
-      }else if (Form === 'sign-up') {
+      const valid_password = Object.values(validatePassword(Password)).every(Boolean);
+      const valid_FirstName = FirstName != "";
+      const confirm_term_condition = AcceptedTerms;
+
+      if (FormType === 'sign-in') {
+        let valid_e_p = false;
+        valid_e_p = DynamicType === "email" ? emailRegex.test(Email_Phone) : DynamicType === "phone"? phoneRegex.test(Email_Phone): false;
+        return valid_e_p && valid_password && confirm_term_condition
+      }else if (FormType === 'sign-up') {
+        let valid_email = false;
+        valid_email = emailRegex.test(EmailAddress);
+        let valid_phone = false;
+        valid_phone = phoneRegex.test(PhoneNo);
         return valid_email && valid_password && valid_phone && valid_FirstName && confirm_term_condition
-      }else if (Form === 'forgot-password'){
-        if (SearchParams.get('forgot-password') == "newpass"){
+      }else if (FormType === 'forgot-password'){
+        if (NewPass){
           return valid_password && confirm_term_condition
         }
-        valid_email = emailRegex.test(Email_Phone);
-        if (!valid_email){
-          var valid_email = phoneRegex.test(Email_Phone);
-        };
+        let valid_email = false;
+        valid_email = emailRegex.test(EmailAddress);
         return valid_email && confirm_term_condition
       }  
       return false;
@@ -238,6 +273,8 @@ const AuthenticatePage = () => {
       PhoneNo: PhoneNo,
       Email_Phone: Email_Phone,
       Password: Password,
+      ReferralCode:ReferralCode,
+      ReferralDisable: ReferralDisable,
       AcceptedTerms: AcceptedTerms,
       setFirstName: setFirstName,
       setLastName: setLastName,
@@ -245,6 +282,7 @@ const AuthenticatePage = () => {
       setEmail_Phone: setEmail_Phone,
       setPhoneNo: setPhoneNo,
       setPassword: setPassword,
+      setReferralCode: setReferralCode,
       setAcceptedTerms: setAcceptedTerms,
       isLoading: isLoading,
       SubmitForm: SubmitForm,
@@ -253,7 +291,7 @@ const AuthenticatePage = () => {
       DynamicType: DynamicType,
     }
 
-    switch (Form) {
+    switch (FormType) {
       case 'sign-up':
         return (
           <SignUpForm {...FormProps} />
@@ -265,10 +303,10 @@ const AuthenticatePage = () => {
       case 'forgot-password':
         return (
           <>
-            {ForgotPasswordForm(
-              FormProps as Parameters<typeof ForgotPasswordForm>[0],
-              SearchParams.get('forgot-password') == "newpass" ? true : false
-            )}
+          <ForgotPasswordForm
+            {...(FormProps as Parameters<typeof ForgotPasswordForm>[0])}
+            NewPass={NewPass}
+          />
           </>
         );
       default:
@@ -283,74 +321,93 @@ const AuthenticatePage = () => {
     verificationSteps: verificationSteps,
     setVerificationSteps: setVerificationSteps,
   };
+
   return (
     <>
-    <ToastProvider placement={"top-center"} toastOffset={10} />
-    <div className={styles.MainContainer}>
-      <VerificationContainer {...VerificationProps} />
-      <div className={styles.AuthContainer}>
-        {/* Left Section */}
-        <div className={styles.AuthContainer_LeftSection_Container}>
-          <div className={styles.AuthContainer_LeftSection_Container_Image_Container}></div>
-          <div className={styles.AuthContainer_LeftSection_Container_Image_Container_Image}></div>
-          <div className={styles.AuthContainer_LeftSection_Container_Image_Container_Header_Footer_Container}>
-            <div className={styles.AuthContainer_LeftSection_Container_Image_Container_Header}>
-              <Button
-                variant="outline"
-                className={+"w-1/2"+styles.Button}
-                onClick={() => router.push('/')}
+    <ToastProvider placement={"top-center"} maxVisibleToasts={1} toastOffset={40} regionProps={{ className: "z-[9999] fixed" }} />
+    <div className="h-screen w-screen flex items-center justify-center">
+      <Card  radius="none" className="h-full w-full lg:h-[90vh] lg:w-[75vw] sm:rounded-[10px]">
+        <VerificationContainer {...VerificationProps} />
+        <CardBody className="flex flex-col justify-center md:flex-row overflow-hidden">
+          
+          {/* Left Section */}
+          <div className="hidden md:block w-full md:w-1/2 relative">
+            <div className="absolute inset-0 m-2 rounded-[10px] bg-[url('/Assets/Authenticate/Authenticate_BG.png')] bg-cover bg-center"></div>
+            <div className="relative h-full flex flex-col justify-between p-4 sm:p-6 md:p-8">
+              <Button 
+                radius="sm"
+                size="lg"
+                className="ml-auto w-[40%] bg-black text-white hover:bg-neutral-800 dark:bg-neutral-200 dark:text-black dark:hover:bg-white"
+                endContent={<ArrowRight className="h-4 w-4 ml-1" />}
               >
-                Back to website <span className="text-base sm:text-lg ml-1 transition-all duration-500 ease-in-out">→</span>
+                Back to website
               </Button>
-            </div>
-            <div className={styles.AuthContainer_LeftSection_Container_Image_Container_Footer}>
-              <p className={styles.AuthContainer_LeftSection_Container_Image_Container_Footer_Description}>
+              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-center bg-white text-transparent bg-clip-text leading-snug">
                 Empowering Your Trades,<br /> Elevating Your Profits
               </p>
             </div>
           </div>
-        </div>
 
-        {/* Right Section */}
-        <div className={styles.AuthContainer_RightSection_Container}>
-          {/* Header */}
-          <div className={styles.AuthContainer_RightSection_Container_Header}>
-            <CardTitle className={styles.AuthContainer_RightSection_Container_Title}>
-              {Form === 'sign-in' && 'Welcome back'}
-              {Form === 'sign-up' && 'Create an account'}
-              {Form === 'forgot-password' && 'Reset your password'}
-            </CardTitle>
-            <CardDescription className={styles.AuthContainer_RightSection_Container_Description}>
-              {Form === 'sign-in' && 'Sign in to your account'}
-              {Form === 'sign-up' && 'Enter your info to sign up'}
-              {Form === 'forgot-password' && "We'll email you a reset link"}
-            </CardDescription>
-          </div>
+          {/* Right Section */}
+          <div className="w-full md:w-1/2 flex flex-col p-[20px] pt-[15px] pr-[40px] justify-center">
+            {/* Header */}
+            <div className="flex flex-col items-center pb-5 text-center">
+              <CardTitle className="text-4xl font-semibold text-black dark:text-white mb-2">
+                {FormType === 'sign-in' && 'Welcome back'}
+                {FormType === 'sign-up' && 'Create an account'}
+                {FormType === 'forgot-password' && 'Reset your password'}
+              </CardTitle>
+              <CardDescription className="text-sm text-gray-700 dark:text-gray-100">
+                {FormType === 'sign-in' && 'Sign in to your account'}
+                {FormType === 'sign-up' && 'Enter your info to sign up'}
+                {FormType === 'forgot-password' && "We'll email you a reset link"}
+              </CardDescription>
+            </div>
+            {/* Form */}
+            <Tabs fullWidth  selectedKey={FormType} size="lg" radius="sm"
+                onSelectionChange={(key) => {
+                  if (
+                    key === 'sign-in' ||
+                    key === 'sign-up' ||
+                    key === 'forgot-password' 
+                  ) {
+                    SetForm(key);
+                  }
+                }}
+              >
+                <Tab key="sign-in" title="Sign In"/>
+                <Tab key="sign-up" title="Sign Up"/>
+                <Tab key="forgot-password" title="Forgot Password"/>
+            </Tabs>
+            <div className='h-[65%]'>
+              {AuthenticationForm()}
+            </div>
 
-          {/* Authentication Form */}
-          <div className={styles.AuthContainer_RightSection_Container_AuthForm}>
-            <Card className={styles.AuthContainer_RightSection_Container_AuthForm_Card}>
-              <CardHeader className={styles.AuthContainer_RightSection_Container_AuthForm_CardHeader}>
-                {AuthenticationForm()}
-              </CardHeader>
-            </Card>
-          </div>
-
-          {/* Social Login */}
-          <div className={styles.socialSection}>
-            <div className={styles.socialSection_Buttons}>
-              <Button className={styles.socialSection_Button}>
-                <FcGoogle className={styles.socialSection_ButtonStyle} />
-                Google
-              </Button>
-              <Button className={styles.socialSection_Button}>
-                <FaApple className={styles.socialSection_ButtonStyle} />
-                Apple
-              </Button>
+            {/* Social Login */}
+            <div className="p-4 pb-0 border-t border-gray-500">
+              <div className="flex flex-col md:flex-row items-center justify-center gap-5">
+                <Button 
+                  radius="sm"
+                  variant="shadow"
+                  fullWidth size="lg"
+                  className="bg-black text-white hover:bg-neutral-800 dark:bg-neutral-200 dark:text-black dark:hover:bg-white"
+                  startContent={<FcGoogle/>}
+                >
+                  Google
+                </Button>
+                <Button
+                  radius="sm"
+                  variant="shadow"
+                  fullWidth size="lg"
+                  className="bg-black text-white hover:bg-neutral-800 dark:bg-neutral-200 dark:text-black dark:hover:bg-white" 
+                  startContent={<FaApple/>}>
+                  Apple
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </CardBody>
+      </Card>
     </div>
     </>
   );
